@@ -113,7 +113,7 @@ def region_performance(df, column_map):
     return by_region
 
 
-def smart_alerts(df, column_map):
+def smart_alerts(df, column_map, monthly=None):
     alerts = []
     rev_col = column_map.get("revenue")
     date_col = column_map.get("date")
@@ -124,8 +124,9 @@ def smart_alerts(df, column_map):
     if rev_col and rev_col in df_work.columns:
         df_work[rev_col] = pd.to_numeric(df_work[rev_col], errors="coerce").fillna(0)
 
-    if date_col and rev_col:
-        monthly = monthly_trends(df_work, column_map)
+      if date_col and rev_col:
+        if monthly is None:
+            monthly = monthly_trends(df_work, column_map)
         if len(monthly) >= 2:
             last = monthly.iloc[-1]["Revenue"]
             prev = monthly.iloc[-2]["Revenue"]
