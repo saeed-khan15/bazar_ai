@@ -747,7 +747,7 @@ if st.session_state.get("analysis_done"):
                                 st.session_state.chat_history.append({"role": "assistant", "content": response})
                             except Exception as e:
                                 st.session_state.chat_history.append({"role": "assistant", "content": f"Error: {str(e)}"})  
-                        st.rerun()
+                        
 
 # ════════════════════════════════════════════════════════════════════════════
 # LANDING PAGE
