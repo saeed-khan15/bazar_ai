@@ -35,13 +35,6 @@ def check_session_expiry():
 
 
 def reset_session():
-    keys_to_clear = [
-        "df", "column_map", "analysis_done", "faiss_index",
-        "chunk_texts", "chat_history", "kpis", "alerts", "upload_timestamp"
-    ]
-    for key in keys_to_clear:
-        if key in st.session_state:
-            del st.session_state[key]
     st.session_state.upload_timestamp = None
     st.session_state.df = None
     st.session_state.column_map = {}
