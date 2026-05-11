@@ -1,10 +1,16 @@
 # utils/embeddings.py
 import numpy as np
-import streamlit as st
-
-
-@st.cache_resource(show_spinner="Loading AI model (first time only)...")
 def get_embedding_model():
+    import streamlit as st
+
+    @st.cache_resource(show_spinner="Loading AI model (first time only)...")
+    def _load():
+        try:
+            from fastembed import TextEmbedding
+            return TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+        except Exception:
+            return None
+    return _load()
     """
     Load fastembed model once per container lifetime.
     @st.cache_resource means all user sessions share the same loaded model —
