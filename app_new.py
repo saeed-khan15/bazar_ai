@@ -295,12 +295,12 @@ if analyze_btn and uploaded_file is not None:
                 # Analysis
                 kpis = compute_kpis(df, column_map)
                 st.session_state.kpis = kpis
-
-                alerts = smart_alerts(df, column_map)
+                monthly = monthly_trends(df, column_map)
+                alerts = smart_alerts(df, column_map, monthly=monthly)
                 st.session_state.alerts = alerts
 
                 # Trend analysis - with better date detection
-                monthly = monthly_trends(df, column_map)
+               
                 growth = growth_rates(df, column_map)
                 top_products, bottom_products = top_bottom_products(df, column_map)
                 regions = region_performance(df, column_map)
