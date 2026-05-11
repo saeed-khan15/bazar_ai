@@ -7,7 +7,7 @@ import pandas as pd
 THEME_PRIMARY = "#1e7145"       # Dark green
 THEME_ACCENT = "#16a34a"        # Bright green
 THEME_DANGER = "#dc2626"        # Red
-THEME_BG = "rgba(10, 14, 39, 0.8)"      # Dark background
+THEME_BG = "rgba(0,0,0,0)"      # Dark background
 THEME_TEXT = "#e8f0f5"          # Light text
 COLORS = ["#1e7145", "#16a34a", "#059669", "#047857", "#10b981", "#34d399"]
 
