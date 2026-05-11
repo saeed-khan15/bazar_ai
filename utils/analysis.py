@@ -124,7 +124,7 @@ def smart_alerts(df, column_map, monthly=None):
     if rev_col and rev_col in df_work.columns:
         df_work[rev_col] = pd.to_numeric(df_work[rev_col], errors="coerce").fillna(0)
 
-      if date_col and rev_col:
+    if date_col and rev_col:
         if monthly is None:
             monthly = monthly_trends(df_work, column_map)
         if len(monthly) >= 2:
