@@ -190,8 +190,8 @@ def region_pie_chart(region_df):
             font=dict(size=12, color=TEXT_MID),
             bgcolor="rgba(0,0,0,0)",
         ),
-        margin=dict(l=10, r=10, t=50, b=10),
     )
+    fig.update_layout(margin=dict(l=10, r=10, t=50, b=10))
     return fig
 
 
