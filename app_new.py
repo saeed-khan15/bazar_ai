@@ -433,36 +433,57 @@ if st.session_state.get("analysis_done"):
     with tab_overview:
         st.subheader("Key Performance Indicators")
 
-        kpi_cols = st.columns(4)
+        def fmt_number(val):
+            """Abbreviate large numbers so they never truncate."""
+            if val >= 1_000_000:
+                return f"PKR {val/1_000_000:.2f}M"
+            elif val >= 1_000:
+                return f"PKR {val/1_000:.1f}K"
+            return f"PKR {val:,.0f}"
+
+        def kpi_card(icon, label, value, delta=None, delta_val=None):
+            if delta_val is not None:
+                color = "#16a34a" if delta_val >= 0 else "#dc2626"
+                arrow = "▲" if delta_val >= 0 else "▼"
+                delta_html = f'<div style="font-size:13px;color:{color};margin-top:4px;">{arrow} {delta}</div>'
+            else:
+                delta_html = ""
+            return f"""
+            <div style="background:rgba(30,113,69,0.08);border:1px solid rgba(30,113,69,0.25);
+                        border-radius:12px;padding:18px 20px;height:110px;
+                        display:flex;flex-direction:column;justify-content:space-between;">
+                <div style="font-size:12px;color:#a0aec0;font-weight:500;text-transform:uppercase;
+                            letter-spacing:0.05em;">{icon} {label}</div>
+                <div style="font-size:22px;font-weight:700;color:#e8f0f5;
+                            white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{value}</div>
+                {delta_html}
+            </div>"""
+
         kpi_items = []
         if kpis.get("total_revenue"):
-            kpi_items.append(("Total Revenue", f"PKR {kpis['total_revenue']:,.0f}", None))
+            kpi_items.append(("💰", "Total Revenue", fmt_number(kpis["total_revenue"]), None, None))
         if kpis.get("avg_revenue"):
-            kpi_items.append(("Avg Transaction", f"PKR {kpis['avg_revenue']:,.0f}", None))
+            kpi_items.append(("📊", "Avg Transaction", fmt_number(kpis["avg_revenue"]), None, None))
         if kpis.get("mom_growth") is not None:
-            delta = f"{kpis['mom_growth']:+.1f}%"
-            kpi_items.append(("MoM Growth", delta, kpis['mom_growth']))
+            g = kpis["mom_growth"]
+            kpi_items.append(("📈", "MoM Growth", f"{g:+.1f}%", f"{g:+.1f}%", g))
         if kpis.get("total_products"):
-            kpi_items.append(("Products", str(int(kpis["total_products"])), None))
+            kpi_items.append(("📦", "Products", str(int(kpis["total_products"])), None, None))
         if kpis.get("total_regions"):
-            kpi_items.append(("Regions", str(int(kpis["total_regions"])), None))
+            kpi_items.append(("🗺️", "Regions", str(int(kpis["total_regions"])), None, None))
         if kpis.get("total_quantity"):
-            kpi_items.append(("Units Sold", f"{kpis['total_quantity']:,.0f}", None))
+            v = kpis["total_quantity"]
+            kpi_items.append(("🛒", "Units Sold", f"{v/1000:.1f}K" if v >= 1000 else str(int(v)), None, None))
 
-        for i, item in enumerate(kpi_items[:4]):
-            with kpi_cols[i % 4]:
-                label, value, delta = item
-                if delta is not None:
-                    st.metric(label, value, delta=f"{delta:+.1f}%" if isinstance(delta, float) else delta)
-                else:
-                    st.metric(label, value)
-
-        if len(kpi_items) > 4:
-            extra_cols = st.columns(4)
-            for i, item in enumerate(kpi_items[4:8]):
-                with extra_cols[i % 4]:
-                    label, value, delta = item
-                    st.metric(label, value)
+        # Render in rows of 3
+        for row_start in range(0, len(kpi_items), 3):
+            row = kpi_items[row_start:row_start+3]
+            cols = st.columns(len(row))
+            for col, (icon, label, value, delta, delta_val) in zip(cols, row):
+                with col:
+                    st.markdown(kpi_card(icon, label, value, delta, delta_val),
+                                unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
         # Alerts
         if alerts:
