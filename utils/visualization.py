@@ -63,21 +63,60 @@ def growth_rate_chart(growth_df):
 def top_products_chart(top_df, title="🏆 Top Products by Revenue"):
     if top_df.empty:
         return None
-    # Use a single accent color for better contrast on dark background
+
+    df = top_df.sort_values("Revenue").copy()
+
+    # Format labels as abbreviations — e.g. 1.99M, 450K
+    def fmt(v):
+        if v >= 1_000_000: return f"PKR {v/1_000_000:.2f}M"
+        if v >= 1_000:     return f"PKR {v/1_000:.1f}K"
+        return f"PKR {v:,.0f}"
+
+    df["label"] = df["Revenue"].apply(fmt)
+
+    # Color gradient — top bar darkest, bottom lightest
+    n = len(df)
+    bar_colors = [
+        f"rgba(22, 163, 74, {0.45 + 0.55 * (i / max(n-1, 1))})"
+        for i in range(n)
+    ]
+
     fig = px.bar(
-        top_df.sort_values("Revenue"), x="Revenue", y="Product",
-        orientation="h", title=title,
-        text="Revenue",
+        df, x="Revenue", y="Product",
+        orientation="h",
+        title=title,
+        text="label",
     )
-    fig.update_traces(marker_color=THEME_ACCENT, texttemplate="%{text:,.0f}", textposition="outside",
-                     textfont=dict(color=THEME_TEXT, size=11))
+    fig.update_traces(
+        marker_color=bar_colors,
+        textposition="inside",          # always visible, inside the bar
+        textfont=dict(color="white", size=12, family="Arial"),
+        marker_line_width=0,
+        hovertemplate="<b>%{y}</b><br>Revenue: %{x:,.0f}<extra></extra>",
+    )
     fig.update_layout(
-        plot_bgcolor=THEME_BG, paper_bgcolor=THEME_BG,
-        font=dict(family="Arial", size=13, color=THEME_TEXT),
-        title_font_color=THEME_TEXT,
-        coloraxis_showscale=False,
-        xaxis=dict(gridcolor="rgba(255,255,255,0.1)", tickfont=dict(color=THEME_TEXT)),
-        yaxis=dict(tickfont=dict(color=THEME_TEXT))
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Arial", size=13, color="#374151"),
+        title_font=dict(size=15, color="#1e7145", family="Arial"),
+        margin=dict(l=10, r=20, t=45, b=30),
+        xaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.06)",
+            tickfont=dict(color="#6b7280", size=11),
+            title=dict(text="Revenue (PKR)", font=dict(color="#6b7280", size=12)),
+            tickformat="~s",            # auto abbreviates axis: 1M, 500K etc
+        ),
+        yaxis=dict(
+            tickfont=dict(color="#374151", size=12),
+            title=None,                 # product names are self-explanatory
+        ),
+        hoverlabel=dict(
+            bgcolor="#1e7145",
+            font_size=13,
+            font_color="white",
+        ),
+        bargap=0.35,                    # more breathing room between bars
     )
     return fig
 
