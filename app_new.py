@@ -452,9 +452,9 @@ if st.session_state.get("analysis_done"):
             <div style="background:rgba(30,113,69,0.08);border:1px solid rgba(30,113,69,0.25);
                         border-radius:12px;padding:18px 20px;height:110px;
                         display:flex;flex-direction:column;justify-content:space-between;">
-                <div style="font-size:12px;color:#a0aec0;font-weight:500;text-transform:uppercase;
+                <div style="font-size:12px;color:#6b7280;font-weight:500;text-transform:uppercase;
                             letter-spacing:0.05em;">{icon} {label}</div>
-                <div style="font-size:22px;font-weight:700;color:#e8f0f5;
+                <div style="font-size:22px;font-weight:700;color:#1e7145;
                             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{value}</div>
                 {delta_html}
             </div>"""
