@@ -166,7 +166,7 @@ streamlit run app_new.py
         help="Upload your sales data file (CSV or Excel format). Recommended: < 50MB"
     )
     if uploaded_file:
-    st.session_state.filename = uploaded_file.name
+        st.session_state.filename = uploaded_file.name
 
     col1, col2 = st.columns(2)
     with col1:
