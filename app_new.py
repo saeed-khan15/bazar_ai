@@ -10,6 +10,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(__file__))
 
 from utils.session import init_session, check_session_expiry, reset_session, get_session_info
+from utils.report import build_html_report
 from utils.ingestion import clean_dataframe, get_data_summary, auto_map_columns
 from utils.analysis import (
     compute_kpis, monthly_trends, growth_rates,
@@ -164,6 +165,8 @@ streamlit run app_new.py
         type=["csv", "xlsx", "xls"],
         help="Upload your sales data file (CSV or Excel format). Recommended: < 50MB"
     )
+    if uploaded_file:
+    st.session_state.filename = uploaded_file.name
 
     col1, col2 = st.columns(2)
     with col1:
@@ -425,8 +428,8 @@ if st.session_state.get("analysis_done"):
     bottom_products = st.session_state.get("bottom_products", pd.DataFrame())
     regions = st.session_state.get("regions", pd.DataFrame())
 
-    tab_overview, tab_trends, tab_products, tab_regions, tab_summary, tab_chat = st.tabs([
-        "Overview", "Trends", "Products", "Regions", "Summary", "Chat"
+   tab_overview, tab_trends, tab_products, tab_regions, tab_summary, tab_chat, tab_report = st.tabs([
+        "Overview", "Trends", "Products", "Regions", "Summary", "Chat With Your Data", "Download Report"
     ])
 
     # ── OVERVIEW TAB ────────────────────────────────────────────────────
@@ -770,10 +773,107 @@ if st.session_state.get("analysis_done"):
                                 st.session_state.chat_history.append({"role": "assistant", "content": f"Error: {str(e)}"})  
                         
 
+# ── REPORT TAB ──────────────────────────────────────────────────────────
+    with tab_report:
+        st.subheader("📄 Download Your Business Report")
+        st.caption("A professional one-page HTML report of your business data — ready to share or print.")
+
+        st.divider()
+
+        from utils.visualization import (
+            monthly_trend_chart, growth_rate_chart,
+            top_products_chart, region_pie_chart, region_bar_chart
+        )
+
+        monthly_df  = st.session_state.get("monthly",          pd.DataFrame())
+        growth_df   = st.session_state.get("growth",           pd.DataFrame())
+        top_prods   = st.session_state.get("top_products",     pd.DataFrame())
+        bot_prods   = st.session_state.get("bottom_products",  pd.DataFrame())
+        regions_df  = st.session_state.get("regions",          pd.DataFrame())
+        kpis        = st.session_state.get("kpis",             {})
+        alerts      = st.session_state.get("alerts",           [])
+        summary     = st.session_state.get("executive_summary", "")
+        filename    = st.session_state.get("filename",         "business_data")
+
+        fig_trend      = monthly_trend_chart(monthly_df)   if not monthly_df.empty  else None
+        fig_growth     = growth_rate_chart(growth_df)      if not growth_df.empty   else None
+        fig_top        = top_products_chart(top_prods)     if not top_prods.empty   else None
+        fig_bottom     = top_products_chart(bot_prods, title="⚠️ Bottom 5 Products by Revenue") \
+                         if not bot_prods.empty else None
+        fig_pie        = region_pie_chart(regions_df)      if not regions_df.empty  else None
+        fig_region_bar = region_bar_chart(regions_df)      if not regions_df.empty  else None
+
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.markdown("**✅ What's included:**")
+            st.markdown("""
+- KPI summary cards
+- Smart business alerts
+- Monthly revenue trend
+- MoM growth rate chart
+- Top & bottom products
+- Regional performance
+- AI executive summary
+            """)
+        with col_b:
+            st.markdown("**📊 Charts:**")
+            chart_count = sum([
+                fig_trend is not None, fig_growth is not None,
+                fig_top is not None,   fig_bottom is not None,
+                fig_pie is not None,   fig_region_bar is not None,
+            ])
+            st.metric("Charts available", f"{chart_count} / 6")
+            st.metric("Alerts detected",  len(alerts))
+        with col_c:
+            st.markdown("**ℹ️ Note on charts:**")
+            st.info(
+                "Charts render as images in the report. "
+                "Install **kaleido** (`pip install kaleido`) "
+                "for chart images. Without it, charts show a placeholder message."
+            )
+
+        st.divider()
+
+        if st.button("🚀 Generate Report", type="primary", use_container_width=True):
+            with st.spinner("Building your report..."):
+                try:
+                    html = build_html_report(
+                        filename          = filename,
+                        kpis              = kpis,
+                        alerts            = alerts,
+                        executive_summary = summary,
+                        top_products      = top_prods,
+                        bottom_products   = bot_prods,
+                        regions           = regions_df,
+                        fig_trend         = fig_trend,
+                        fig_growth        = fig_growth,
+                        fig_top           = fig_top,
+                        fig_bottom        = fig_bottom,
+                        fig_pie           = fig_pie,
+                        fig_region_bar    = fig_region_bar,
+                    )
+                    st.success("✅ Report ready!")
+                    report_filename = f"BazaarAI_Report_{filename.split('.')[0]}.html"
+                    st.download_button(
+                        label     = "⬇️ Download HTML Report",
+                        data      = html.encode("utf-8"),
+                        file_name = report_filename,
+                        mime      = "text/html",
+                        use_container_width=True,
+                    )
+                    st.caption(
+                        "💡 **To save as PDF:** Open the downloaded file in Chrome → "
+                        "File → Print → Save as PDF. Set margins to None for best results."
+                    )
+                    with st.expander("👁️ Preview report in browser", expanded=False):
+                        st.components.v1.html(html, height=800, scrolling=True)
+
+                except Exception as e:
+                    st.error(f"Report generation failed: {str(e)}")
+
 # ════════════════════════════════════════════════════════════════════════════
 # LANDING PAGE
 # ════════════════════════════════════════════════════════════════════════════
-
 else:
     col1, col2 = st.columns([2, 1], gap="large")
     
