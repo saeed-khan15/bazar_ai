@@ -428,7 +428,7 @@ if st.session_state.get("analysis_done"):
     bottom_products = st.session_state.get("bottom_products", pd.DataFrame())
     regions = st.session_state.get("regions", pd.DataFrame())
 
-   tab_overview, tab_trends, tab_products, tab_regions, tab_summary, tab_chat, tab_report = st.tabs([
+    tab_overview, tab_trends, tab_products, tab_regions, tab_summary, tab_chat, tab_report = st.tabs([
         "Overview", "Trends", "Products", "Regions", "Summary", "Chat With Your Data", "Download Report"
     ])
 
